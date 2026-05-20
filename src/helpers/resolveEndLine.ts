@@ -27,8 +27,12 @@ export const resolveEndLine = (
 	if (opts.matchString !== undefined) {
 		const needle = opts.matchString;
 		for (const c of opts.commentsAfter ?? []) {
-			if (c.startLine > commentEndLineNumber && c.content.includes(needle))
-				return Math.max(commentEndLineNumber, Math.min(c.startLine - 1, lastLine));
+			if (c.startLine > commentEndLineNumber && c.content.includes(needle)) {
+				let end = Math.min(c.startLine - 1, lastLine);
+				while (end > commentEndLineNumber && doc.lineAt(end).isEmptyOrWhitespace)
+					end--;
+				return Math.max(commentEndLineNumber, end);
+			}
 		}
 	}
 

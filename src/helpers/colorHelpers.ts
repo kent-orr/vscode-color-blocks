@@ -78,6 +78,27 @@ export function hslToHex(h: number, s: number, l: number) {
     return "#" + stringColor.join('');
 }
 
+export function hexToRgb01(hex: string): [number, number, number] {
+    if (hex.length === 4) {
+        return [
+            parseInt(hex[1] + hex[1], 16) / 255,
+            parseInt(hex[2] + hex[2], 16) / 255,
+            parseInt(hex[3] + hex[3], 16) / 255,
+        ];
+    }
+    return [
+        parseInt(hex.slice(1, 3), 16) / 255,
+        parseInt(hex.slice(3, 5), 16) / 255,
+        parseInt(hex.slice(5, 7), 16) / 255,
+    ];
+}
+
+export function rgb01ToHex(r: number, g: number, b: number): string {
+    return '#' + [r, g, b]
+        .map(c => Math.round(c * 255).toString(16).padStart(2, '0'))
+        .join('');
+}
+
 // From: https://stackoverflow.com/a/697841
 export function decimalToHexString(decimal: number) {
     let hexString = Math.round(decimal).toString(16);

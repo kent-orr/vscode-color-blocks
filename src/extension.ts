@@ -3,6 +3,7 @@
 import * as vscode from 'vscode';
 import { CommentConfigHandler } from './commentConfigHandler';
 import { DecorationRangeHandler } from './decorationRangeHandler';
+import { ColorBlockColorProvider } from './colorProvider';
 import commands from './commands';
 
 export const getSettings = () => vscode.workspace.getConfiguration("color-blocks");
@@ -64,6 +65,10 @@ export function activate(context: vscode.ExtensionContext) {
     // Define all commands {#aca}
     for (const command of commands)
         context.subscriptions.push(command);
+
+    context.subscriptions.push(
+        vscode.languages.registerColorProvider({ scheme: '*' }, new ColorBlockColorProvider(commentConfigHandler))
+    );
 
     // Handle active file changed {#ff0}
     vscode.window.onDidChangeActiveTextEditor(editorChange);

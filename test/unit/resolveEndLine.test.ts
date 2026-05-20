@@ -85,6 +85,15 @@ describe('resolveEndLine', () => {
 				5,
 			);
 		});
+
+		it('stops at last content line when blank lines precede the matched comment', () => {
+			// lines 13 and 14 are blank, matched comment at 15
+			const after: CommentRef[] = [{ startLine: 15, content: ' Section 2 ----' }];
+			assert.strictEqual(
+				resolveEndLine(5, docOf([13, 14], 100), { matchString: 'Section 2', commentsAfter: after }),
+				12,
+			);
+		});
 	});
 
 	describe('until-empty-line default', () => {
