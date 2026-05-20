@@ -65,6 +65,21 @@ Color blocks work with both line comments and block comments. All lines in the c
 You can set colors by name in v2.0 of Color Blocks, the syntax looks like this `# Your Comment Here {silver,3}`.
 For a list of valid color names, see this: https://drafts.csswg.org/css-color/#named-colors
 
+### Section Blocks
+Instead of a line count, you can give the second argument as a quoted string. The color block then runs from the current comment until (but not including) the next comment whose text contains that string — so headers stay in sync as you edit the section.
+
+```
+# Section 1 ---- {#abd, 'Section 2'}
+... section 1 code, blank lines OK ...
+
+# Section 2 ----
+```
+
+* Matching is **case-sensitive substring**, so `'Section 2'` matches `# Section 2 ----` but not `# section 2`.
+* Single or double quotes are accepted: `{#abd, "Section 2"}`.
+* An optional `until:` keyword reads nicely: `{#abd, until: 'Section 2'}`.
+* If no later comment matches, the block falls back to the default behaviour (extending until the next empty line).
+
 ---
 
 ## Inspired by

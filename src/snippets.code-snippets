@@ -7,5 +7,14 @@
       "$LINE_COMMENT ${1} {#${2:${RANDOM_HEX/(.).?(.).?(.).?/$1$2$3/}},${3:1}}$0"
     ],
     "description": "Color a range of lines."
+  },
+  "Color Block Section": {
+    "prefix": [
+      "color block section"
+    ],
+    "body": [
+      "$LINE_COMMENT ${1:Section name} {#${2:${RANDOM_HEX/(.).?(.).?(.).?/$1$2$3/}}, '${3:Next section name}'}$0"
+    ],
+    "description": "Color a range that extends until the next comment containing the given string."
   }
 }

@@ -2,6 +2,7 @@ import * as vscode from 'vscode';
 import { hexToHsl, hslToHex, decimalToHexString } from './helpers/colorHelpers';
 import { colorBlockRegex } from './helpers/colorBlockRegex';
 import { arrAdd, getIndention } from './helpers/miscHelpers';
+import { resolveEndLine, CommentRef } from './helpers/resolveEndLine';
 import { Comment } from './commentConfigHandler';
 import toHex = require('colornames');
 
@@ -15,6 +16,7 @@ interface DecorationRange {
     argumentBlock: ContentRange;
     hexColor: ContentRange;
     nLines?: ContentRange;
+    matchString?: ContentRange;
     commentStartLine: number;
     codeStartLine: number;
     endLine: number;
@@ -106,7 +108,11 @@ export class DecorationRangeHandler {
 
         if (comments.length === 0) return;
 
-        for (const comment of comments) {
+        const commentStartLines = comments.map(c => doc.positionAt(c.range[0]).line);
+
+        for (let i = 0; i < comments.length; i++) {
+            const comment = comments[i];
+
             // Extract arguments for this comment
             const match = colorBlockRegex.exec(comment.content);
 
@@ -120,36 +126,40 @@ export class DecorationRangeHandler {
             if (!colorHex)
                 continue;
 
-            const commentStartLineNumber = doc.positionAt(comment.range[0]).line;
+            const commentStartLineNumber = commentStartLines[i];
             const commentEndLineNumber = doc.positionAt(comment.range[1]).line;
 
             const matchOffset = comment.range[0] + comment.startDelimiter.length;
 
-            let nLinesAfterComment!: number;
             let nLines: ContentRange | undefined = undefined;
-            if (match.groups!.lines) {
-                nLinesAfterComment = parseInt(match.groups!.lines);
+            if (match.groups!.lines !== undefined) {
                 nLines = {
-                    content: nLinesAfterComment,
+                    content: parseInt(match.groups!.lines),
                     range: arrAdd(match.indices!.groups!.lines, matchOffset) as [number, number]
                 };
             }
-            else {
-                // Count number of lines after the comment that are not empty
-                let nLinesAfterCommentUntilEmpty = 0;
-                let lineNumber = commentEndLineNumber + 1;
-                let lineIsEmpty = doc.lineAt(lineNumber).isEmptyOrWhitespace;
-                while (!lineIsEmpty) {
-                    nLinesAfterCommentUntilEmpty++;
-                    lineNumber++;
-                    lineIsEmpty = doc.lineAt(lineNumber).isEmptyOrWhitespace;
-                }
 
-                nLinesAfterComment = nLinesAfterCommentUntilEmpty;
+            let matchString: ContentRange | undefined = undefined;
+            if (match.groups!.matchString !== undefined) {
+                matchString = {
+                    content: match.groups!.matchString,
+                    range: arrAdd(match.indices!.groups!.matchString, matchOffset) as [number, number]
+                };
             }
-            
-            // Make sure endLine is not outside of document
-            const endLine = safeGetLineNr(commentEndLineNumber + nLinesAfterComment, doc);
+
+            const commentsAfter: CommentRef[] = [];
+            for (let j = i + 1; j < comments.length; j++) {
+                commentsAfter.push({
+                    startLine: commentStartLines[j],
+                    content: comments[j].content,
+                });
+            }
+
+            const endLine = resolveEndLine(commentEndLineNumber, doc, {
+                nLines: nLines?.content,
+                matchString: matchString?.content,
+                commentsAfter,
+            });
 
             this.decorationRanges.push({
                 comment: comment,
@@ -162,6 +172,7 @@ export class DecorationRangeHandler {
                     range: arrAdd(match.indices!.groups!.color, matchOffset) as [number, number]
                 },
                 nLines: nLines,
+                matchString: matchString,
                 commentStartLine: commentStartLineNumber,
                 codeStartLine: commentEndLineNumber + 1,
                 endLine: endLine,

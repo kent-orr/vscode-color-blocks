@@ -21,10 +21,17 @@ const regexString = mulitlineRegex`
         ))
     )
 \s*
-    (?:                                     // Optional argument:
-        ,\s*                                //  Comma
-        (?:lines\s*:\s*)?                   //  Optional key word
-        (?<lines>\d+)                       //  Capture integer number of lines -> group name "lines"
+    (?:                                     // Optional second argument:
+        ,\s*                                //  Comma separator
+        (?:
+            (?:lines\s*:\s*)?               //   Optional 'lines:' keyword
+            (?<lines>\d+)                   //   integer line count -> group name "lines"
+            |                               //  OR
+            (?:until\s*:\s*)?               //   Optional 'until:' keyword
+            (?<quote>['"])                  //   opening quote (single or double)
+            (?<matchString>[^'"]*)          //   pattern content -> group name "matchString"
+            \k<quote>                       //   matching closing quote
+        )
     )?
 \s*
 }                                           // End of color block arguments
